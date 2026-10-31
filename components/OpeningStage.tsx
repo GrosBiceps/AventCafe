@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Component, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import Pouch from "./Pouch";
 import Sheet, { type ProfileMode } from "./Sheet";
@@ -47,13 +47,30 @@ function canAnimate(): boolean {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
   try {
     const c = document.createElement("canvas");
-    return Boolean(c.getContext("webgl2") || c.getContext("webgl"));
+    const gl = c.getContext("webgl2") || c.getContext("webgl");
+    // Libère tout de suite ce contexte de test : iOS limite le nombre de contextes WebGL.
+    gl?.getExtension("WEBGL_lose_context")?.loseContext();
+    return Boolean(gl);
   } catch {
     return false;
   }
 }
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Si la 3D plante (WebGL refusé, mémoire), l’ouverture continue avec le sachet 2D. */
+class SceneBoundary extends Component<{ onError: () => void; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch() {
+    this.props.onError();
+  }
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
 
 export default function OpeningStage({ n, already, load, onClose, onLocked }: Props) {
   // Sans WebGL ou avec mouvement réduit : fiche directe, comme un sachet déjà ouvert.
@@ -75,8 +92,16 @@ export default function OpeningStage({ n, already, load, onClose, onLocked }: Pr
   const stageRef = useRef<HTMLDivElement>(null);
   const hitRef = useRef<HTMLButtonElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
+  const [sceneFailed, setSceneFailed] = useState(false);
   const phaseRef = useRef<Phase>(phase);
   const loadRef = useRef(load);
+  const sceneOk = useRef(false);
+  const timers = useRef<number[]>([]);
+
+  useEffect(() => {
+    const pending = timers.current;
+    return () => pending.forEach(clearTimeout);
+  }, []);
 
   useEffect(() => {
     const dlg = dialogRef.current!;
@@ -101,10 +126,19 @@ export default function OpeningStage({ n, already, load, onClose, onLocked }: Pr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onSceneReady = useCallback(() => setSceneReady(true), []);
+  const onSceneReady = useCallback(() => {
+    sceneOk.current = true;
+    setSceneReady(true);
+  }, []);
 
-  // La carte 3D est face à l’écran : la fiche HTML prend le relais.
+  const onSceneFail = useCallback(() => {
+    sceneOk.current = false;
+    setSceneFailed(true);
+  }, []);
+
+  // La carte 3D est face à l’écran (ou la 3D a échoué) : la fiche HTML prend le relais.
   const onOpened = useCallback(() => {
+    if (phaseRef.current === "revealed") return;
     phaseRef.current = "revealed";
     setPhase("revealed");
     requestAnimationFrame(() => {
@@ -144,7 +178,10 @@ export default function OpeningStage({ n, already, load, onClose, onLocked }: Pr
     markOpened(n);
     phaseRef.current = "tearing";
     setPhase("tearing");
-  }, [error, n, onLocked]);
+    // Ouverture garantie : sans 3D prête, fiche directe ; sinon filet de sécurité si la scène
+    // n’annonce pas la fin (téléphone lent, contexte WebGL perdu).
+    timers.current.push(window.setTimeout(onOpened, sceneOk.current ? 2600 : 150));
+  }, [error, n, onLocked, onOpened]);
 
   const revealed = phase === "revealed";
   const sceneMode: SceneMode = revealed ? "tearing" : phase;
@@ -160,15 +197,25 @@ export default function OpeningStage({ n, already, load, onClose, onLocked }: Pr
       </button>
 
       <div className="scene" ref={stageRef}>
-        {animated && !sceneGone && (
+        {animated && !sceneGone && !sceneFailed && (
           <div className={sceneReady ? "stage3d ready" : "stage3d"} aria-hidden="true">
-            <PouchScene n={n} mode={sceneMode} onReady={onSceneReady} onOpened={onOpened} eventSource={stageRef} freezeAt={freezeAt} />
+            <SceneBoundary onError={onSceneFail}>
+              <PouchScene
+                n={n}
+                mode={sceneMode}
+                onReady={onSceneReady}
+                onOpened={onOpened}
+                onFail={onSceneFail}
+                eventSource={stageRef}
+                freezeAt={freezeAt}
+              />
+            </SceneBoundary>
           </div>
         )}
         {animated && !revealed && (
           <>
-            {/* Sachet 2D identique, affiché le temps que la scène 3D se charge. */}
-            {!sceneReady && (
+            {/* Sachet 2D identique, affiché pendant le chargement de la 3D ou à sa place si elle échoue. */}
+            {(!sceneReady || sceneFailed) && (
               <div className="stage-placeholder" aria-hidden="true">
                 <Pouch n={n} />
               </div>

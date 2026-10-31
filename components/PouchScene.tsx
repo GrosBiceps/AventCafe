@@ -17,6 +17,8 @@ type Props = {
   onReady: () => void;
   /** Appelé quand la carte est arrivée face à l’écran : la fiche HTML prend le relais. */
   onOpened: () => void;
+  /** WebGL indisponible ou perdu : l’écran d’ouverture bascule sur le sachet 2D. */
+  onFail?: () => void;
   eventSource: RefObject<HTMLElement | null>;
   /** Dev uniquement : fige la déchirure à w secondes (captures d’écran, réglages). */
   freezeAt?: number;
@@ -455,7 +457,10 @@ function Pouch3D({ n, mode, onReady, onOpened, freezeAt, lite }: Omit<Props, "ev
   useEffect(() => {
     let alive = true;
     const serif = fontVar("--font-zilla", "Georgia");
-    Promise.all([document.fonts.load(`700 80px ${serif}`), document.fonts.ready]).then(() => {
+    // Une police qui ne charge pas (Safari, réseau) ne doit jamais bloquer l’ouverture.
+    const fonts = Promise.all([document.fonts.load(`700 80px ${serif}`), document.fonts.ready]).catch(() => undefined);
+    const timeout = new Promise((r) => setTimeout(r, 1500));
+    Promise.race([fonts, timeout]).then(() => {
       if (!alive) return;
       const front = toTexture(frontTexture(n, lite));
       const back = toTexture(backTexture(lite));
@@ -576,7 +581,7 @@ function isLite(): boolean {
   return window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768;
 }
 
-export default function PouchScene({ n, mode, onReady, onOpened, eventSource, freezeAt }: Props) {
+export default function PouchScene({ n, mode, onReady, onOpened, onFail, eventSource, freezeAt }: Props) {
   const [lite] = useState(isLite);
   const [dpr, setDpr] = useState<number | [number, number]>(lite ? [1, 1.25] : [1, 2]);
   const charging = mode === "charging";
@@ -588,6 +593,9 @@ export default function PouchScene({ n, mode, onReady, onOpened, eventSource, fr
       eventSource={eventSource as RefObject<HTMLElement>}
       eventPrefix="client"
       style={{ pointerEvents: "none" }}
+      onCreated={({ gl }) => {
+        gl.domElement.addEventListener("webglcontextlost", () => onFail?.(), { once: true });
+      }}
     >
       <ambientLight intensity={0.18} />
       <directionalLight position={[-3.5, 4, 4]} intensity={1.7} color="#FFF4E6" />

@@ -306,3 +306,7 @@ dialog.opening:not(.idle) .stage-hit { pointer-events: none }
   .slot.today .pouch, .slot.shake .pouch, .rays { animation: none }
   .pouch, .glow, .toast, .progress-bar span { transition: none }
 }
+
+/* Sachet 2D de secours (3D pas encore prête ou indisponible) : il tremble pendant la charge. */
+dialog.opening.charging .stage-placeholder .pouch { animation: shake .45s infinite }
+@media (prefers-reduced-motion: reduce) { dialog.opening.charging .stage-placeholder .pouch { animation: none } }
