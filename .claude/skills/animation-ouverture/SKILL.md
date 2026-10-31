@@ -5,8 +5,8 @@ description: Spécification de la scène d’ouverture plein écran du sachet de
 
 # Scène d’ouverture plein écran
 
-Référence analysée : gil2-cards.com (booster 3D react-three-fiber). On reproduit la **sensation**
-sans three.js : CSS 3D (`perspective`, `preserve-3d`) + WAAPI. Le sachet kraft de la maquette
+Référence analysée : gil2-cards.com (booster 3D react-three-fiber). On reproduit la mise en scène
+en vraie 3D (three.js + react-three-fiber, `components/PouchScene.tsx`). Le sachet doypack kraft
 remplace le booster, en très grand, seul à l’écran.
 
 ## Ce que fait gil2 (relevé dans leur code)

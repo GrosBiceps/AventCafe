@@ -20,7 +20,12 @@ Réponds toujours en français. Fais des commits petits et clairs, puis pousse s
 - Next.js (dernière stable, App Router) + TypeScript strict.
 - CSS natif (`app/globals.css` ou CSS Modules). **Pas de Tailwind, pas de lib d’UI.**
 - Polices via `next/font/google` : Zilla Slab (500, 700), Karla (400, 600).
-- Animations : **Web Animations API + CSS uniquement.** Pas de GSAP, Framer Motion, three.js.
+- Animations : Web Animations API + CSS. Pas de GSAP ni Framer Motion.
+- 3D (validé le 31/10/2026) : `three` + `@react-three/fiber` + `@react-three/drei`, **uniquement** dans
+  `components/PouchScene.tsx`, chargé via `next/dynamic` à l’ouverture d’un sachet. Jamais dans l’accueil.
+  Sachet doypack modélisé par code (pas de modèle TurboSquid : licence). `?freeze=0.6` (dev) fige la déchirure.
+- Palette « crème éditorial + vert sapin » : fond `#F4EEE4`, sapin `#1E4B3A`, brique `#B4432F`,
+  papier `#FFFDF8` ; thème sombre « nuit de sapin » `#0F1714`. Tokens dans `app/globals.css`.
 - Pas de base de données en phase 1 : notes et sachets ouverts en `localStorage`.
 - Hébergement : Vercel, auto-déployé à chaque push sur `main`.
 
