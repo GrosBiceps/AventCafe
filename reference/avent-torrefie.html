@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>L’Avent torréfié</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;700&family=Karla:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#E6D8C1; --bg2:#DCCAAE; --ink:#2B1D14; --muted:#6B5644;
+  --pine:#1F4A36; --cran:#A42A2E; --gold:#A87C24;
+  --surface:#F3EAD9; --line:rgba(43,29,20,.18);
+  --paper:#FBF4E4; --paper-ink:#2B1D14; --label-green:#1F4A36; --label-red:#A42A2E;
+  --kraft1:#C99D69; --kraft2:#B3824F; --kraft3:#9A6A3B;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#13221C; --bg2:#0F1B16; --ink:#F1E7D6; --muted:#B6A68F;
+    --pine:#7DB896; --cran:#E2676A; --gold:#D9B060;
+    --surface:#1D2F27; --line:rgba(241,231,214,.16);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#13221C; --bg2:#0F1B16; --ink:#F1E7D6; --muted:#B6A68F;
+  --pine:#7DB896; --cran:#E2676A; --gold:#D9B060;
+  --surface:#1D2F27; --line:rgba(241,231,214,.16);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; min-height:100vh;
+  background: radial-gradient(120% 80% at 50% 0%, var(--bg) 40%, var(--bg2) 100%);
+  background-color:var(--bg);
+  color:var(--ink);
+  font:400 17px/1.55 Karla, "Helvetica Neue", Arial, sans-serif;
+}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px;border-radius:6px}
+
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+/* ---------- Header ---------- */
+header.top{padding:56px 0 28px;display:grid;grid-template-columns:1fr auto;gap:28px;align-items:end}
+h1{
+  font:700 clamp(2.6rem,6vw,4.6rem)/.95 "Zilla Slab", Georgia, serif;
+  margin:0;letter-spacing:-.01em;color:var(--ink);
+}
+.lede{margin:14px 0 0;max-width:46ch;color:var(--muted);font-size:1.08rem}
+.status{
+  margin-top:22px;display:inline-flex;gap:12px;align-items:center;
+  padding:10px 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);
+  font-weight:600;
+}
+.status .dot{width:10px;height:10px;border-radius:50%;background:var(--cran);flex:none}
+.trial{display:flex;flex-direction:column;align-items:center;gap:10px;width:120px}
+.trial small{color:var(--muted);text-align:center;line-height:1.3}
+
+/* ---------- Grid ---------- */
+.shelf{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));
+  gap:34px 22px;padding:24px 0 40px;
+}
+.slot{position:relative;background:none;border:0;padding:0;cursor:pointer;text-align:center}
+.slot .tag{
+  position:absolute;top:-12px;left:50%;transform:translateX(-50%);z-index:3;
+  background:var(--cran);color:#fff;font-size:.72rem;font-weight:600;
+  padding:2px 9px;border-radius:999px;white-space:nowrap;
+}
+.slot.today .bag{animation:bob 2.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:rotate(var(--tilt,0deg)) translateY(0)}50%{transform:rotate(var(--tilt,0deg)) translateY(-5px)}}
+.slot.shake .bag{animation:shake .45s}
+@keyframes shake{20%{transform:rotate(-4deg)}40%{transform:rotate(4deg)}60%{transform:rotate(-3deg)}80%{transform:rotate(2deg)}}
+
+/* ---------- Bag ---------- */
+.bag{
+  position:relative;width:100%;aspect-ratio:3/4.2;
+  font-size:11px;transform:rotate(var(--tilt,0deg));transition:transform .25s;
+  filter:drop-shadow(0 10px 10px rgba(40,20,5,.28));
+}
+.slot:hover .bag{transform:rotate(0deg) translateY(-3px)}
+.bag-body{
+  position:absolute;inset:11% 0 0 0;border-radius:4px 4px 10px 10px;
+  background:
+    repeating-linear-gradient(97deg, rgba(255,255,255,.035) 0 2px, transparent 2px 5px),
+    linear-gradient(160deg,var(--kraft1),var(--kraft2) 60%,var(--kraft3));
+  box-shadow: inset 9px 0 12px -7px rgba(0,0,0,.28), inset -9px 0 12px -7px rgba(0,0,0,.28), inset 0 -10px 14px -10px rgba(0,0,0,.3);
+}
+.bag-seal{
+  position:absolute;left:0;right:0;top:0;height:15%;
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.12) 0 1px, transparent 1px 4px),
+    linear-gradient(180deg,var(--kraft3),var(--kraft2));
+  border-radius:4px 4px 0 0;
+  clip-path:polygon(0 0,100% 0,100% 82%,95% 100%,90% 82%,85% 100%,80% 82%,75% 100%,70% 82%,65% 100%,60% 82%,55% 100%,50% 82%,45% 100%,40% 82%,35% 100%,30% 82%,25% 100%,20% 82%,15% 100%,10% 82%,5% 100%,0 82%);
+  transform-origin:20% 100%;
+}
+.bag.torn .bag-seal{opacity:0}
+.bag.torn .bag-body{
+  clip-path:polygon(0% 3%,5% 0%,10% 3%,15% 0%,20% 3%,25% 0%,30% 3%,35% 0%,40% 3%,45% 0%,50% 3%,55% 0%,60% 3%,65% 0%,70% 3%,75% 0%,80% 3%,85% 0%,90% 3%,95% 0%,100% 3%,100% 100%,0% 100%);
+}
+.label{
+  position:absolute;left:12%;right:12%;top:20%;bottom:12%;
+  background:var(--paper);color:var(--paper-ink);
+  border:.18em solid var(--label-green);border-radius:.3em;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:.6em .4em;overflow:hidden;
+}
+.ribbon{position:absolute;width:3.4em;height:.7em;background:var(--label-red)}
+.ribbon.r1{top:.7em;left:-1em;transform:rotate(-40deg);box-shadow:0 .9em 0 var(--label-green)}
+.ribbon.r2{top:.7em;right:-1em;transform:rotate(40deg);box-shadow:0 .9em 0 var(--label-green)}
+.label-brand{font:600 .78em/1 Karla,sans-serif;color:var(--label-green);letter-spacing:.02em}
+.label-num{font:700 4.4em/1 "Zilla Slab",Georgia,serif;color:var(--label-red);margin:.08em 0 .02em}
+.label-kind{font:600 .82em/1 Karla,sans-serif;color:var(--label-green)}
+.label-origin{
+  font:700 1.05em/1.15 "Zilla Slab",Georgia,serif;margin-top:.3em;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.bag.locked .bag-body,.bag.locked .bag-seal{filter:saturate(.55) brightness(.92)}
+.wax{
+  position:absolute;right:-6%;bottom:6%;z-index:2;
+  width:3.9em;height:3.9em;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #C9474B, #8E1E22 70%);
+  box-shadow:0 2px 0 rgba(0,0,0,.25), inset 0 0 0 .3em rgba(0,0,0,.12);
+  display:grid;place-items:center;color:#FBE9DA;
+  font:700 .9em/1.05 "Zilla Slab",serif;text-align:center;
+}
+
+/* ---------- Coffret config ---------- */
+.prep{border-top:1.5px solid var(--line);padding:26px 0 70px}
+.prep summary{cursor:pointer;font:700 1.3rem/1.2 "Zilla Slab",serif}
+.prep p{color:var(--muted);max-width:62ch}
+.prep-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-top:16px}
+.prep fieldset{border:1.5px solid var(--line);border-radius:10px;padding:14px;background:var(--surface);margin:0}
+.prep legend{font:700 1.05rem "Zilla Slab",serif;padding:0 6px}
+.prep label{display:block;font-size:.85rem;color:var(--muted);margin-top:8px}
+.prep input[type=text]{
+  width:100%;padding:8px 10px;border-radius:6px;border:1.5px solid var(--line);
+  background:var(--bg);color:var(--ink);font:inherit;font-size:.95rem;
+}
+.prep .range{display:grid;grid-template-columns:76px 1fr 18px;align-items:center;gap:8px;font-size:.85rem}
+.prep input[type=range]{width:100%;accent-color:var(--pine)}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--pine);color:#fff;border:0;border-radius:999px;
+  padding:12px 22px;font-weight:600;cursor:pointer;
+}
+:root[data-theme="dark"] .btn{color:#10201A}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn{color:#10201A}}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.saved{margin-left:12px;color:var(--pine);font-weight:600}
+
+/* ---------- Modal ---------- */
+dialog{
+  border:0;padding:0;background:transparent;color:var(--ink);
+  width:min(560px,100vw);max-width:100vw;max-height:100%;height:100%;
+  overflow:visible;
+}
+dialog::backdrop{background:rgba(15,10,6,.72);backdrop-filter:blur(3px)}
+.modal{
+  height:100%;overflow-y:auto;overflow-x:hidden;
+  padding:calc(env(safe-area-inset-top,0px) + 18px) 16px calc(env(safe-area-inset-bottom,0px) + 30px);
+  display:flex;flex-direction:column;align-items:center;
+}
+.close{
+  align-self:flex-end;background:rgba(255,255,255,.12);border:0;color:#fff;
+  width:42px;height:42px;border-radius:50%;font-size:1.5rem;line-height:1;cursor:pointer;flex:none;
+}
+.stage{position:relative;width:100%;display:flex;flex-direction:column;align-items:center;min-height:520px}
+.stage .bag{width:min(300px,72vw);font-size:clamp(17px,5vw,25px);margin-top:10px;cursor:pointer;--tilt:0deg}
+.stage .hint{color:#EADFCB;margin:22px 0 0;text-align:center}
+.beans{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.bean{
+  position:absolute;width:16px;height:22px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#7A4A2A,#3E2213 75%);
+}
+.bean::after{content:"";position:absolute;left:47%;top:12%;bottom:12%;width:2px;border-radius:2px;background:#22110A;transform:rotate(8deg)}
+.seal-fly{position:absolute;pointer-events:none}
+
+/* ---------- Sheet ---------- */
+.sheet{
+  position:relative;width:100%;background:var(--paper);color:var(--paper-ink);
+  border:3px solid var(--label-green);border-radius:12px;
+  padding:30px 24px 26px;overflow:hidden;visibility:hidden;
+  box-shadow:0 30px 60px -20px rgba(0,0,0,.6);
+}
+.sheet.show{visibility:visible}
+.sheet .ribbon{width:110px;height:16px;top:20px}
+.sheet .ribbon.r1{left:-30px;box-shadow:0 22px 0 var(--label-green)}
+.sheet .ribbon.r2{right:-30px;box-shadow:0 22px 0 var(--label-green)}
+.sheet-head{text-align:center}
+.sheet-day{font:700 4.2rem/1 "Zilla Slab",serif;color:var(--label-red)}
+.sheet-roaster{font-weight:600;color:var(--label-green);margin-top:4px}
+.sheet h2{font:700 clamp(1.9rem,6vw,2.5rem)/1.05 "Zilla Slab",serif;margin:6px 0 4px}
+.sheet-origin{color:#5E4A39;margin:0}
+.ritual{
+  margin:22px 0 4px;padding:14px 16px;border-radius:8px;
+  background:#EFE3CC;border-left:4px solid var(--label-red);
+}
+.ritual h3{margin:0 0 4px;font:700 1.12rem "Zilla Slab",serif}
+.ritual p{margin:0}
+.ritual .tip{margin-top:8px;font-size:.92rem;color:#6B5644}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0 0}
+.facts div{border-top:2px solid var(--label-green);padding-top:6px}
+.facts dt{font-size:.8rem;color:#6B5644}
+.facts dd{margin:0;font-weight:600;font-size:.95rem;line-height:1.3}
+.notes{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 0;padding:0;list-style:none}
+.notes li{
+  background:var(--label-green);color:#FBF4E4;border-radius:999px;padding:5px 13px;font-weight:600;font-size:.92rem;
+}
+.desc{margin:16px 0 0;color:#3E2E22}
+.profile{margin:22px 0 0;display:grid;gap:9px}
+.prow{display:grid;grid-template-columns:90px 1fr;align-items:center;gap:10px;font-size:.92rem}
+.pbeans{display:flex;gap:6px}
+.pb{width:14px;height:19px;border-radius:50%;background:#E3D6BE;position:relative;transition:background .3s, transform .3s}
+.pb.on{background:radial-gradient(circle at 35% 30%,#7A4A2A,#3E2213 75%)}
+.pb.on::after{content:"";position:absolute;left:46%;top:14%;bottom:14%;width:1.5px;background:#22110A;transform:rotate(8deg)}
+.unknown{color:#8A7460;font-style:italic}
+.rate{margin:24px 0 0;border-top:1.5px dashed rgba(43,29,20,.25);padding-top:16px}
+.rate h3{margin:0 0 8px;font:700 1.12rem "Zilla Slab",serif}
+.stars{display:flex;gap:4px}
+.stars button{background:none;border:0;font-size:1.9rem;line-height:1;cursor:pointer;color:#D9C9AC;padding:2px}
+.stars button.on{color:var(--label-red)}
+.rate textarea{
+  width:100%;margin-top:10px;min-height:70px;border-radius:8px;border:1.5px solid rgba(43,29,20,.22);
+  background:#FFFBF2;color:#2B1D14;font:inherit;font-size:.95rem;padding:10px;resize:vertical;
+}
+.disclaimer{font-size:.8rem;color:#8A7460;margin:14px 0 0}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);transform:translate(-50%,30px);
+  background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:999px;font-weight:600;
+  opacity:0;transition:.3s;z-index:50;max-width:90vw;text-align:center;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:640px){
+  header.top{grid-template-columns:1fr;padding-top:34px}
+  .trial{flex-direction:row;width:auto}
+  .trial .slot{width:90px}
+  .shelf{grid-template-columns:repeat(3,1fr);gap:26px 14px}
+  .facts{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion: reduce){
+  .slot.today .bag,.slot.shake .bag{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>L’Avent torréfié</h1>
+      <p class="lede">Vingt-quatre sachets, sept cafés, un rituel par matin. Chaque sachet s’ouvre le jour venu, pas avant.</p>
+      <div class="status" id="status"><span class="dot"></span><span id="statusText"></span></div>
+    </div>
+    <div class="trial" id="trial"></div>
+  </header>
+
+  <main>
+    <div class="shelf" id="shelf" aria-label="Calendrier de l’Avent"></div>
+
+    <details class="prep">
+      <summary>Renseigner les 4 cafés du coffret Lugat</summary>
+      <p>Le coffret change de composition à chaque commande. À réception, nomme les sachets A, B, C et D, puis remplis leurs fiches ici. Pour garder la surprise, confie cette étape à quelqu’un d’autre.</p>
+      <form id="prepForm">
+        <div class="prep-grid" id="prepGrid"></div>
+        <div style="margin-top:18px">
+          <button class="btn" type="submit">Enregistrer le coffret</button>
+          <span class="saved" id="savedMsg" hidden>Coffret enregistré</span>
+        </div>
+      </form>
+    </details>
+  </main>
+</div>
+
+<dialog id="dlg" aria-label="Sachet du jour">
+  <div class="modal">
+    <button class="close" id="closeBtn" aria-label="Fermer">×</button>
+    <div class="stage" id="stage"></div>
+  </div>
+</dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+const YEAR = 2026;
+const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- Storage ---------- */
+function load(key, fallback){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
+function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+let opened = load("avent-opened", []);
+let ratings = load("avent-ratings", {});
+let coffret = load("avent-coffret", {});
+
+/* ---------- Cafés ---------- */
+const BASE = {
+  fullmonkeys:{
+    name:"The Full Monkeys", roaster:"Terres de Café", short:"Assemblage",
+    origin:"Assemblage 100 % arabica", process:"Assemblage", roast:"Moyenne",
+    notes:["Équilibré","Subtil","Aromatique"],
+    profile:{Intensité:3, Acidité:3, Corps:3, Douceur:3},
+    desc:"Le blend maison d’un torréfacteur parisien de référence. Un café d’équilibre, idéal pour comparer le style de Terres de Café à celui de Lugat."
+  },
+  kawa:{
+    name:"Kawa Blend", roaster:"Tanat", short:"Brésil, Guatemala, Pérou",
+    origin:"Brésil, Guatemala, Pérou", process:"Assemblage", roast:"Foncée",
+    notes:["Caramel","Chocolat"],
+    profile:{Intensité:4, Acidité:1, Corps:4, Douceur:4},
+    desc:"Un assemblage rond et gourmand, pensé pour l’espresso. Le contrepoint sucré des cafés plus vifs du coffret."
+  },
+  winter:{
+    name:"Winter Blend", roaster:"Lugat, édition limitée", short:"Brésil, Indonésie, Inde",
+    origin:"Brésil, Indonésie, Inde", process:"Nature, semi-lavé, moussonné", roast:"Foncée",
+    notes:["Fruits confits","Noisette torréfiée"],
+    profile:{Intensité:4, Acidité:1, Corps:5, Douceur:4},
+    desc:"Le café d’hiver de Lugat. Un grain moussonné indien, des fruits confits et de la noisette : la tasse de réveillon."
+  },
+  trial:{
+    name:"Sachet d’essai", roaster:"L’Avent torréfié", short:"Patience",
+    origin:"Ta cuisine, fin octobre", process:"Impatience lavée", roast:"Légère",
+    notes:["Impatience","Gourmandise"],
+    profile:{Intensité:2, Acidité:3, Corps:2, Douceur:5},
+    desc:"Ce sachet sert juste à voir l’animation. Les vrais s’ouvrent à partir du 1er décembre."
+  }
+};
+function coffretCoffee(k){
+  const c = coffret[k] || {};
+  const p = c.profile || {};
+  return {
+    name: c.name || ("Café surprise " + k),
+    roaster: "Coffret Lugat, sachet " + k,
+    short: c.origin || ("Sachet " + k),
+    origin: c.origin || "Inscrite sur le sachet " + k,
+    process: c.process || "À découvrir",
+    roast: c.roast || "À découvrir",
+    notes: (c.notes || "").split(",").map(s=>s.trim()).filter(Boolean),
+    profile: {Intensité:p.Intensité||0, Acidité:p.Acidité||0, Corps:p.Corps||0, Douceur:p.Douceur||0},
+    desc: c.name ? "" : "Ouvre le sachet " + k + " du coffret Lugat : sa fiche n’a pas encore été remplie. Lis l’étiquette, puis complète la fiche en bas de page."
+  };
+}
+function getCoffee(id){ return ["A","B","C","D"].includes(id) ? coffretCoffee(id) : BASE[id]; }
+
+/* ---------- Rituels ---------- */
+const ACTS = {
+  1:{title:"Premier jour avec ce café", text:"Espresso court, sans sucre. Sens la tasse avant de boire, puis note ta première impression.", tip:"Nouveau café : fais couler un café de purge, le broyeur contient encore le précédent."},
+  2:{title:"Deuxième jour : version allongée", text:"Lance-le en lungo ou en café allongé. Qu’est-ce qui ressort quand il a plus d’eau pour s’exprimer ?"},
+  3:{title:"Troisième jour : face au lait", text:"En cappuccino ou en latte. Est-ce qu’il tient tête au lait ? Donne ta note finale ci-dessous."}
+};
+
+/* ---------- Programme des 24 jours ---------- */
+const DAYS = {};
+let d = 1;
+["A","B","C","D","fullmonkeys","kawa"].forEach(id=>{ for(let a=1;a<=3;a++){ DAYS[d++] = {coffee:id, act:a}; } });
+DAYS[19] = {special:"fav1"};
+DAYS[20] = {special:"fav2"};
+DAYS[21] = {special:"duel"};
+DAYS[22] = {coffee:"winter", act:1};
+DAYS[23] = {coffee:"winter", act:2};
+DAYS[24] = {coffee:"winter", act:3, finale:true};
+
+function favorites(){
+  return ["A","B","C","D","fullmonkeys","kawa"]
+    .filter(id=>ratings[id] && ratings[id].stars)
+    .sort((a,b)=>ratings[b].stars - ratings[a].stars);
+}
+function resolveDay(n){
+  const day = DAYS[n];
+  if(!day.special) return {coffeeId:day.coffee, act:ACTS[day.act], finale:day.finale};
+  const favs = favorites();
+  if(day.special === "fav1"){
+    return {coffeeId:favs[0] || null, act:{title:"Le retour de ton favori", text: favs[0] ? "Ressers-toi le café le mieux noté de ton calendrier. Te plaît-il toujours autant ?" : "Choisis le café qui t’a le plus marqué depuis le 1er décembre et ressers-le. Pense à noter tes cafés : ce sachet le choisira pour toi."}};
+  }
+  if(day.special === "fav2"){
+    return {coffeeId:favs[1] || null, act:{title:"Le dauphin", text: favs[1] ? "Voici ton deuxième café préféré. Demain, il affronte le premier." : "Ressers ton deuxième café préféré. Demain, il affronte le premier."}};
+  }
+  return {coffeeId:null, duel:favs.slice(0,2), act:{title:"Duel à l’aveugle", text:"Demande à quelqu’un de préparer tes deux favoris dans deux tasses identiques. Devine lequel est lequel, puis départage-les pour de bon."}};
+}
+
+/* ---------- Dates ---------- */
+function now(){ return new Date(); }
+function isUnlocked(n){ return now() >= new Date(YEAR, 11, n); }
+function todayNumber(){
+  const t = now();
+  if(t.getFullYear() === YEAR && t.getMonth() === 11 && t.getDate() <= 24) return t.getDate();
+  return 0;
+}
+function statusText(){
+  const t = now();
+  const start = new Date(YEAR, 11, 1);
+  if(t < start){
+    const days = Math.ceil((start - t) / 86400000);
+    return days === 1 ? "Le premier sachet s’ouvre demain" : "Le premier sachet s’ouvre dans " + days + " jours";
+  }
+  const tn = todayNumber();
+  if(tn) return opened.includes(tn) ? "Sachet n° " + tn + " ouvert. À demain." : "Le sachet n° " + tn + " t’attend";
+  return "Calendrier terminé. Joyeuses fêtes !";
+}
+
+/* ---------- Bag markup ---------- */
+const ORDER = [7,15,2,20,11,4,23,9,1,17,13,6,22,3,18,10,24,5,14,8,19,12,21,16];
+const TILTS = [-2,1.5,-1,2,-1.5,1,0.5,-2,2,-0.5,1.5,-1];
+function bagHTML(num, opts){
+  const label = num === 0 ? "Essai" : num;
+  return '<div class="bag ' + (opts.torn ? "torn " : "") + (opts.locked ? "locked" : "") + '" style="--tilt:' + (opts.tilt||0) + 'deg">' +
+    '<div class="bag-body"><div class="label">' +
+      '<span class="ribbon r1"></span><span class="ribbon r2"></span>' +
+      '<div class="label-brand">L’Avent torréfié</div>' +
+      '<div class="label-num" style="' + (num===0 ? "font-size:2.4em" : "") + '">' + label + '</div>' +
+      '<div class="label-kind">Origine</div>' +
+      '<div class="label-origin">' + (opts.origin || "?") + '</div>' +
+    '</div></div>' +
+    '<div class="bag-seal"></div>' +
+    (opts.locked ? '<div class="wax">' + num + '<br>déc.</div>' : "") +
+  '</div>';
+}
+function originFor(n){
+  const r = resolveDay(n);
+  if(r.coffeeId) return getCoffee(r.coffeeId).short;
+  return r.duel ? "Duel" : "Favori";
+}
+
+/* ---------- Render grid ---------- */
+const shelf = document.getElementById("shelf");
+function renderShelf(){
+  const tn = todayNumber();
+  shelf.innerHTML = ORDER.map((n,i)=>{
+    const unlocked = isUnlocked(n);
+    const isOpen = opened.includes(n) && unlocked;
+    const label = unlocked ? (isOpen ? "Sachet " + n + ", ouvert : revoir la fiche" : "Ouvrir le sachet " + n) : "Sachet " + n + ", verrouillé jusqu’au " + n + " décembre";
+    return '<button class="slot' + (n===tn && !isOpen ? " today" : "") + '" data-n="' + n + '" aria-label="' + label + '">' +
+      (n===tn && !isOpen ? '<span class="tag">Aujourd’hui</span>' : "") +
+      bagHTML(n, {locked:!unlocked, torn:isOpen, origin: isOpen ? originFor(n) : null, tilt:TILTS[i % TILTS.length]}) +
+    '</button>';
+  }).join("");
+  document.getElementById("statusText").textContent = statusText();
+}
+document.getElementById("trial").innerHTML =
+  '<button class="slot" data-n="0" aria-label="Ouvrir le sachet d’essai">' + bagHTML(0,{tilt:-3}) + '</button>' +
+  '<small>Sachet d’essai, pour voir l’animation</small>';
+
+document.addEventListener("click", e=>{
+  const slot = e.target.closest(".slot");
+  if(!slot) return;
+  const n = +slot.dataset.n;
+  if(n !== 0 && !isUnlocked(n)){
+    slot.classList.remove("shake"); void slot.offsetWidth; slot.classList.add("shake");
+    toast("Patience : ce sachet s’ouvre le " + (n===1 ? "1er" : n) + " décembre.");
+    return;
+  }
+  openDialog(n);
+});
+
+/* ---------- Toast ---------- */
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove("show"), 2600);
+}
+
+/* ---------- Dialog ---------- */
+const dlg = document.getElementById("dlg");
+const stage = document.getElementById("stage");
+document.getElementById("closeBtn").addEventListener("click", ()=>dlg.close());
+dlg.addEventListener("click", e=>{ if(e.target === dlg) dlg.close(); });
+dlg.addEventListener("close", renderShelf);
+
+function openDialog(n){
+  const already = n !== 0 && opened.includes(n);
+  stage.innerHTML =
+    (already ? "" : bagHTML(n, {})) +
+    (already ? "" : '<p class="hint">Touche le sachet pour le déchirer</p>') +
+    '<div class="beans"></div>' +
+    sheetHTML(n);
+  dlg.showModal();
+  const sheet = stage.querySelector(".sheet");
+  wireSheet(sheet, n);
+  if(already){
+    sheet.classList.add("show");
+    fillProfile(sheet, true);
+    return;
+  }
+  const bag = stage.querySelector(".bag");
+  bag.setAttribute("tabindex","0");
+  bag.setAttribute("role","button");
+  bag.setAttribute("aria-label","Déchirer le sachet");
+  bag.focus();
+  const go = ()=>tear(n, bag, sheet);
+  bag.addEventListener("click", go, {once:true});
+  bag.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go(); } }, {once:true});
+}
+
+function tear(n, bag, sheet){
+  if(n !== 0 && !opened.includes(n)){ opened.push(n); save("avent-opened", opened); }
+  const hint = stage.querySelector(".hint");
+  if(REDUCED){
+    bag.remove(); if(hint) hint.remove();
+    sheet.classList.add("show"); fillProfile(sheet, true); return;
+  }
+  if(hint) hint.style.opacity = 0;
+  const seal = bag.querySelector(".bag-seal");
+  // 1. Le sachet tremble
+  bag.animate([{transform:"rotate(0)"},{transform:"rotate(-3deg)"},{transform:"rotate(3deg)"},{transform:"rotate(-2deg)"},{transform:"rotate(0)"}], {duration:420});
+  setTimeout(()=>{
+    // 2. La bande du haut s'arrache
+    const sr = seal.getBoundingClientRect(), st = stage.getBoundingClientRect();
+    const fly = seal.cloneNode(true);
+    fly.classList.add("seal-fly");
+    Object.assign(fly.style, {left:(sr.left-st.left)+"px", top:(sr.top-st.top)+"px", width:sr.width+"px", height:sr.height+"px"});
+    stage.appendChild(fly);
+    bag.classList.add("torn");
+    fly.animate([
+      {transform:"translate(0,0) rotate(0)", opacity:1},
+      {transform:"translate(-40px,-120px) rotate(-28deg)", opacity:1, offset:.6},
+      {transform:"translate(-90px,-60px) rotate(-55deg)", opacity:0}
+    ], {duration:900, easing:"cubic-bezier(.2,.7,.3,1)", fill:"forwards"});
+    // 3. Les grains jaillissent
+    burstBeans(bag);
+  }, 420);
+  setTimeout(()=>{
+    // 4. La fiche sort du sachet
+    bag.animate([{transform:"translateY(0)", opacity:1},{transform:"translateY(60px) scale(.9)", opacity:0}], {duration:500, easing:"ease-in", fill:"forwards"});
+    if(hint) hint.remove();
+    sheet.classList.add("show");
+    sheet.animate([
+      {transform:"translateY(-260px) scale(.42)", opacity:0},
+      {transform:"translateY(-330px) scale(.5)", opacity:1, offset:.35},
+      {transform:"translateY(0) scale(1)", opacity:1}
+    ], {duration:950, easing:"cubic-bezier(.2,.8,.2,1)"});
+    setTimeout(()=>{ bag.remove(); fillProfile(sheet, false); }, 520);
+  }, 1350);
+}
+
+function burstBeans(bag){
+  const layer = stage.querySelector(".beans");
+  const br = bag.getBoundingClientRect(), st = stage.getBoundingClientRect();
+  const cx = br.left - st.left + br.width/2, cy = br.top - st.top + br.height*0.14;
+  for(let i=0;i<26;i++){
+    const b = document.createElement("span");
+    b.className = "bean";
+    b.style.left = (cx - 8 + (Math.random()-.5)*br.width*.5) + "px";
+    b.style.top = (cy - 11) + "px";
+    layer.appendChild(b);
+    const dx = (Math.random()-.5)*360, up = 120 + Math.random()*170, fall = 260 + Math.random()*220, r = (Math.random()-.5)*720;
+    b.animate([
+      {transform:"translate(0,0) rotate(0) scale(.6)", opacity:0},
+      {transform:"translate(" + dx*.5 + "px," + (-up) + "px) rotate(" + r/2 + "deg) scale(1)", opacity:1, offset:.4},
+      {transform:"translate(" + dx + "px," + fall + "px) rotate(" + r + "deg) scale(1)", opacity:0}
+    ], {duration:1300 + Math.random()*500, delay:Math.random()*160, easing:"cubic-bezier(.3,.6,.5,1)", fill:"forwards"}).onfinish = ()=>b.remove();
+  }
+}
+
+/* ---------- Fiche ---------- */
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function sheetHTML(n){
+  const r = n === 0 ? {coffeeId:"trial", act:{title:"Mode d’emploi", text:"Le jour venu, touche le sachet du jour pour le déchirer et découvrir ton café."}} : resolveDay(n);
+  const c = r.coffeeId ? getCoffee(r.coffeeId) : null;
+  let head, body = "";
+  if(c){
+    head = '<div class="sheet-roaster">' + esc(c.roaster) + '</div><h2>' + esc(c.name) + '</h2><p class="sheet-origin">' + esc(c.origin) + '</p>';
+  } else if(r.duel){
+    const names = r.duel.map(id=>getCoffee(id).name);
+    head = '<div class="sheet-roaster">Tes deux favoris</div><h2>' + (names.length===2 ? esc(names[0]) + " contre " + esc(names[1]) : "Le grand duel") + '</h2>';
+  } else {
+    head = '<div class="sheet-roaster">Au choix</div><h2>Ton café préféré</h2>';
+  }
+  const act = r.act;
+  body += '<div class="ritual"><h3>' + esc(act.title) + '</h3><p>' + esc(act.text) + '</p>' + (act.tip ? '<p class="tip">' + esc(act.tip) + '</p>' : "") + '</div>';
+  if(r.finale) body += '<div class="ritual" style="border-left-color:var(--label-green)"><h3>Joyeux réveillon</h3><p>Dernier sachet. Prends le temps : c’est le café de la soirée.</p></div>';
+  if(c){
+    body += '<dl class="facts"><div><dt>Origine</dt><dd>' + esc(c.origin) + '</dd></div><div><dt>Traitement</dt><dd>' + esc(c.process) + '</dd></div><div><dt>Torréfaction</dt><dd>' + esc(c.roast) + '</dd></div></dl>';
+    if(c.notes.length) body += '<ul class="notes" aria-label="Notes aromatiques">' + c.notes.map(x=>'<li>' + esc(x) + '</li>').join("") + '</ul>';
+    if(c.desc) body += '<p class="desc">' + esc(c.desc) + '</p>';
+    body += '<div class="profile" aria-label="Profil en tasse">' + Object.entries(c.profile).map(([k,v])=>
+      '<div class="prow"><span>' + k + '</span>' + (v ? '<div class="pbeans" data-v="' + v + '" aria-label="' + v + ' sur 5">' + '<span class="pb"></span>'.repeat(5) + '</div>' : '<span class="unknown">à remplir</span>') + '</div>'
+    ).join("") + '</div>';
+    if(r.coffeeId !== "trial"){
+      const rt = ratings[r.coffeeId] || {};
+      body += '<div class="rate" data-id="' + r.coffeeId + '"><h3>Ta note pour ce café</h3><div class="stars" role="group" aria-label="Note sur 5">' +
+        [1,2,3,4,5].map(s=>'<button type="button" data-s="' + s + '" class="' + (rt.stars>=s ? "on" : "") + '" aria-label="' + s + ' sur 5">★</button>').join("") +
+        '</div><textarea placeholder="Ce que tu as senti, goûté, aimé…" aria-label="Tes notes de dégustation">' + esc(rt.note || "") + '</textarea></div>';
+    }
+    if(!["A","B","C","D","trial"].includes(r.coffeeId)) body += '<p class="disclaimer">Profil indicatif établi d’après la description du torréfacteur.</p>';
+  }
+  return '<article class="sheet"><span class="ribbon r1"></span><span class="ribbon r2"></span>' +
+    '<div class="sheet-head"><div class="sheet-day">' + (n === 0 ? "Essai" : n) + '</div>' + head + '</div>' + body + '</article>';
+}
+function wireSheet(sheet, n){
+  const rate = sheet.querySelector(".rate");
+  if(!rate) return;
+  const id = rate.dataset.id;
+  rate.querySelectorAll(".stars button").forEach(btn=>btn.addEventListener("click", ()=>{
+    const s = +btn.dataset.s;
+    ratings[id] = Object.assign({}, ratings[id], {stars:s}); save("avent-ratings", ratings);
+    rate.querySelectorAll(".stars button").forEach(b=>b.classList.toggle("on", +b.dataset.s <= s));
+  }));
+  rate.querySelector("textarea").addEventListener("input", e=>{
+    ratings[id] = Object.assign({}, ratings[id], {note:e.target.value}); save("avent-ratings", ratings);
+  });
+}
+function fillProfile(sheet, instant){
+  sheet.querySelectorAll(".pbeans").forEach((row,ri)=>{
+    const v = +row.dataset.v;
+    row.querySelectorAll(".pb").forEach((pb,i)=>{
+      if(i >= v) return;
+      if(instant) pb.classList.add("on");
+      else setTimeout(()=>{ pb.classList.add("on"); pb.animate([{transform:"scale(1.5)"},{transform:"scale(1)"}],{duration:260}); }, ri*120 + i*90);
+    });
+  });
+}
+
+/* ---------- Coffret form ---------- */
+const prepGrid = document.getElementById("prepGrid");
+const DIMS = ["Intensité","Acidité","Corps","Douceur"];
+prepGrid.innerHTML = ["A","B","C","D"].map(k=>{
+  const c = coffret[k] || {}, p = c.profile || {};
+  return '<fieldset data-k="' + k + '"><legend>Sachet ' + k + '</legend>' +
+    '<label>Nom du café<input type="text" name="name" value="' + esc(c.name||"") + '" placeholder="Ex. Rose Diamond"></label>' +
+    '<label>Origine<input type="text" name="origin" value="' + esc(c.origin||"") + '" placeholder="Ex. Brésil"></label>' +
+    '<label>Traitement<input type="text" name="process" value="' + esc(c.process||"") + '" placeholder="Ex. Nature"></label>' +
+    '<label>Torréfaction<input type="text" name="roast" value="' + esc(c.roast||"") + '" placeholder="Ex. Moyenne"></label>' +
+    '<label>Notes (séparées par des virgules)<input type="text" name="notes" value="' + esc(c.notes||"") + '" placeholder="Ex. Chocolat, noisette"></label>' +
+    DIMS.map(dm=>'<label class="range">' + dm + '<input type="range" min="0" max="5" name="' + dm + '" value="' + (p[dm]||0) + '"><output>' + (p[dm]||0) + '</output></label>').join("") +
+  '</fieldset>';
+}).join("");
+prepGrid.addEventListener("input", e=>{
+  if(e.target.type === "range") e.target.nextElementSibling.textContent = e.target.value;
+});
+document.getElementById("prepForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  prepGrid.querySelectorAll("fieldset").forEach(fs=>{
+    const g = name=>fs.querySelector('[name="' + name + '"]').value.trim();
+    const profile = {}; DIMS.forEach(dm=>profile[dm] = +g(dm));
+    coffret[fs.dataset.k] = {name:g("name"), origin:g("origin"), process:g("process"), roast:g("roast"), notes:g("notes"), profile};
+  });
+  save("avent-coffret", coffret);
+  const m = document.getElementById("savedMsg"); m.hidden = false; setTimeout(()=>m.hidden = true, 2500);
+  renderShelf();
+});
+
+renderShelf();
+setInterval(renderShelf, 60000);
+})();
+</script>
+</body>
+</html>
