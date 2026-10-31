@@ -9,7 +9,13 @@ import { markOpened } from "@/lib/storage";
 import type { DayCard } from "@/lib/types";
 
 // three.js n’est téléchargé qu’à l’ouverture d’un sachet : l’accueil reste léger.
-const PouchScene = dynamic(() => import("./PouchScene"), { ssr: false });
+const loadScene = () => import("./PouchScene");
+const PouchScene = dynamic(loadScene, { ssr: false });
+
+/** Précharge la scène dès que le doigt touche un sachet : gagne le temps du clic. */
+export function preloadScene(): void {
+  void loadScene();
+}
 
 export type LoadResult = { ok: true; card: DayCard } | { ok: false; reason: "locked" | "error" };
 

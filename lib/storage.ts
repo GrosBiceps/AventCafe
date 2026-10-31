@@ -94,3 +94,8 @@ export function setRating(id: string, patch: Rating): void {
   save(KEY_RATINGS, ratings);
   commit({ ...s, ratings });
 }
+
+/** Seulement les sachets ouverts : l’étagère ne se redessine pas à chaque frappe dans une note. */
+export function useOpened(): number[] {
+  return useSyncExternalStore(subscribe, () => getSnapshot().opened, () => EMPTY.opened);
+}

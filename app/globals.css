@@ -37,7 +37,7 @@ html { scroll-padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adju
 html:has(dialog[open]) { overflow: hidden }
 body {
   margin: 0; min-height: 100vh;
-  background: radial-gradient(120% 60% at 50% -10%, var(--surface2) 0%, var(--bg) 55%, var(--bg2) 100%) fixed;
+  background: radial-gradient(120% 60% at 50% -10%, var(--surface2) 0%, var(--bg) 55%, var(--bg2) 100%);
   background-color: var(--bg);
   color: var(--ink);
   font: 400 17px/1.55 var(--sans);
@@ -127,19 +127,17 @@ h1 {
 /* ---------- Sachet SVG ---------- */
 .pouch {
   display: block; width: 100%; height: auto; overflow: visible;
-  transform: rotate(var(--tilt, 0deg)); transition: transform .35s cubic-bezier(.2, .8, .2, 1), filter .35s;
-  filter: drop-shadow(0 14px 14px rgba(50, 28, 10, .22)) drop-shadow(0 2px 2px rgba(50, 28, 10, .18));
+  transform: rotate(var(--tilt, 0deg)); transition: transform .35s cubic-bezier(.2, .8, .2, 1);
 }
-.slot:hover .pouch { transform: rotate(0deg) translateY(-6px); filter: drop-shadow(0 22px 20px rgba(50, 28, 10, .26)) drop-shadow(0 2px 2px rgba(50, 28, 10, .18)) }
-.pouch.locked .pouch-paper { filter: saturate(.35) brightness(.94) }
-.pouch.locked .pouch-label { opacity: .9 }
+@media (hover: hover) { .slot:hover .pouch { transform: rotate(0deg) translateY(-6px) } }
 .pk-brand { font: 600 9.5px/1 var(--sans); letter-spacing: 1.6px; fill: var(--label-green); text-anchor: middle }
 .pk-num { font: 700 74px/1 var(--serif); fill: var(--label-red); text-anchor: middle }
 .pk-kind { font: 600 9px/1 var(--sans); letter-spacing: 2.4px; fill: var(--label-green); text-anchor: middle }
 .pk-origin { font-family: var(--serif); font-weight: 700; fill: var(--paper-ink); text-anchor: middle }
 .pk-wax-n { font: 700 18px/1 var(--serif); fill: #FBE9DA; text-anchor: middle }
 .pk-wax-m { font: 600 9px/1 var(--sans); fill: #FBE9DA; text-anchor: middle }
-.slot.today .pouch { animation: bob 2.8s ease-in-out infinite }
+/* Seul le sachet du jour reçoit une couche GPU dédiée (animation continue). */
+.slot.today .pouch { animation: bob 2.8s ease-in-out infinite; will-change: transform }
 @keyframes bob { 0%, 100% { transform: rotate(var(--tilt, 0deg)) translateY(0) } 50% { transform: rotate(var(--tilt, 0deg)) translateY(-7px) } }
 .slot.shake .pouch { animation: shake .45s }
 @keyframes shake { 20% { transform: rotate(-4deg) } 40% { transform: rotate(4deg) } 60% { transform: rotate(-3deg) } 80% { transform: rotate(2deg) } }
@@ -162,7 +160,7 @@ dialog.opening::backdrop { background: rgba(7, 14, 11, .8) }
   background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(226, 181, 119, .14) 0deg 8deg, transparent 8deg 22deg);
   -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 12%, transparent 46%);
   mask-image: radial-gradient(circle at 50% 50%, #000 12%, transparent 46%);
-  animation: rays 18s linear infinite; transition: opacity .6s;
+  animation: rays 18s linear infinite; transition: opacity .6s; will-change: transform;
 }
 @keyframes rays { to { transform: rotate(360deg) } }
 .glow {

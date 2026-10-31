@@ -6,7 +6,7 @@
 
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { ContactShadows, Environment, Lightformer, Sparkles } from "@react-three/drei";
+import { ContactShadows, Environment, Lightformer, PerformanceMonitor, Sparkles } from "@react-three/drei";
 import * as THREE from "three";
 
 export type SceneMode = "idle" | "charging" | "tearing";
@@ -43,28 +43,29 @@ const easeInOut = (x: number) => {
 };
 const damp = THREE.MathUtils.damp;
 
-/** Gonflement du sachet : plat aux soudures (côtés, haut), plus ventru vers le soufflet du bas. */
+/** Plis du film : ondulations douces et irrégulières, comme un doypack rempli de grains. */
+function wrinkle(x: number, y: number): number {
+  return (
+    0.024 * Math.sin(3.1 * x + 1.7 * y + 0.6) +
+    0.016 * Math.sin(5.3 * x - 2.9 * y + 1.9) +
+    0.011 * Math.sin(1.3 * x + 6.1 * y)
+  );
+}
+
+/** Gonflement : plat aux soudures (côtés, haut), plus ventru vers le soufflet ; fond plat et épais. */
 function puff(x: number, y: number): number {
-  const ux = clamp01(Math.abs(x) / (HW - 0.06));
-  const across = Math.pow(Math.max(0, Math.cos((ux * Math.PI) / 2)), 0.6);
+  const ux = clamp01(Math.abs(x) / (HW - 0.05));
+  const across = Math.pow(Math.max(0, Math.cos((ux * Math.PI) / 2)), 0.55);
   const top = 1 - smooth(0.85, 1.32, y);
-  const bottom = Math.sqrt(smooth(Y_MIN, Y_MIN + 0.45, y));
+  // Le fond ne se referme pas en pointe : le sachet tient debout sur son soufflet.
+  const bottom = 0.35 + 0.65 * smooth(Y_MIN, Y_MIN + 0.4, y);
   const depth = 0.42 + 0.2 * clamp01((0.5 - y) / 2.4);
-  return depth * across * top * bottom;
+  return (depth * bottom + wrinkle(x, y)) * across * top;
 }
 
-/** Silhouette doypack : flancs qui se resserrent légèrement en haut, coins du bas arrondis. */
+/** Silhouette doypack : flancs droits, légèrement resserrés sous la soudure du haut. */
 function shapeX(x: number, y: number): number {
-  const corner = 1 - smooth(Y_MIN, Y_MIN + 0.32, y);
-  const edge = Math.pow(Math.abs(x) / HW, 4);
-  const pinch = 1 - 0.035 * smooth(0.2, 1.3, y);
-  return x * pinch * (1 - 0.12 * corner * edge);
-}
-
-/** Bas arrondi : les coins remontent un peu, comme un sachet posé sur son soufflet. */
-function shapeY(x: number, y: number): number {
-  const corner = 1 - smooth(Y_MIN, Y_MIN + 0.3, y);
-  return y + 0.12 * corner * Math.pow(Math.abs(x) / HW, 3);
+  return x * (1 - 0.035 * smooth(0.2, 1.3, y));
 }
 
 function panel(y0: number, y1: number, segX: number, segY: number): THREE.BufferGeometry {
@@ -77,8 +78,29 @@ function panel(y0: number, y1: number, segX: number, segY: number): THREE.Buffer
     const y = pos.getY(i);
     // UV calculés avant déformation : l’impression suit le papier.
     uv.setXY(i, (x + HW) / (2 * HW), (y - Y_MIN) / (Y_MAX - Y_MIN));
-    pos.setXYZ(i, shapeX(x, y), shapeY(x, y), puff(x, y));
+    pos.setXYZ(i, shapeX(x, y), y, puff(x, y));
   }
+  g.computeVertexNormals();
+  return g;
+}
+
+/** Fond du sachet (soufflet) : relie la face et le dos le long du bord inférieur. */
+function bottomCap(seg: number): THREE.BufferGeometry {
+  const verts: number[] = [];
+  const idx: number[] = [];
+  for (let i = 0; i <= seg; i++) {
+    const x = -HW + (2 * HW * i) / seg;
+    const sx = shapeX(x, Y_MIN);
+    // Le dos est la face tournée de 180° : sa profondeur en X vaut puff(-X).
+    verts.push(sx, Y_MIN, puff(x, Y_MIN), sx, Y_MIN, -puff(-x, Y_MIN));
+    if (i < seg) {
+      const a = 2 * i;
+      idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(verts, 3));
+  g.setIndex(idx);
   g.computeVertexNormals();
   return g;
 }
@@ -98,7 +120,7 @@ function rng(seed: number) {
 const wy = (y: number) => ((Y_MAX - y) / (Y_MAX - Y_MIN)) * TEX_H;
 const wx = (x: number) => ((x + HW) / (2 * HW)) * TEX_W;
 
-function kraft(ctx: CanvasRenderingContext2D, seed: number) {
+function kraft(ctx: CanvasRenderingContext2D, seed: number, fibers = 2600) {
   const g = ctx.createLinearGradient(0, 0, TEX_W, TEX_H);
   g.addColorStop(0, "#D2AD84");
   g.addColorStop(0.55, "#BC9065");
@@ -107,7 +129,7 @@ function kraft(ctx: CanvasRenderingContext2D, seed: number) {
   ctx.fillRect(0, 0, TEX_W, TEX_H);
   const r = rng(seed);
   // Fibres et mouchetures du papier kraft.
-  for (let i = 0; i < 2600; i++) {
+  for (let i = 0; i < fibers; i++) {
     const x = r() * TEX_W;
     const y = r() * TEX_H;
     const len = 4 + r() * 18;
@@ -126,7 +148,8 @@ function seal(ctx: CanvasRenderingContext2D) {
   ctx.fillStyle = "rgba(90,55,25,0.22)";
   ctx.fillRect(0, top, TEX_W, bottom);
   ctx.fillStyle = "rgba(0,0,0,0.13)";
-  for (let x = 0; x < TEX_W; x += 9) ctx.fillRect(x, top + 6, 3, bottom - 12);
+  // Soudure thermique : fines stries horizontales.
+  for (let y = top + 8; y < bottom - 6; y += 7) ctx.fillRect(0, y, TEX_W, 2);
   // Ligne pointillée et encoches de déchirure.
   const ty = wy(TEAR_Y);
   ctx.setLineDash([20, 14]);
@@ -153,14 +176,14 @@ function seal(ctx: CanvasRenderingContext2D) {
   ctx.fillRect(30, zy + 9, TEX_W - 60, 3);
 }
 
-function frontTexture(n: number): HTMLCanvasElement {
+function frontTexture(n: number, lite: boolean): HTMLCanvasElement {
   const c = document.createElement("canvas");
   c.width = TEX_W;
   c.height = TEX_H;
   const ctx = c.getContext("2d")!;
   const serif = fontVar("--font-zilla", "Georgia, serif");
   const sans = fontVar("--font-karla", "Arial, sans-serif");
-  kraft(ctx, 7 + n);
+  kraft(ctx, 7 + n, lite ? 1200 : 2600);
   seal(ctx);
 
   // Valve de dégazage.
@@ -252,13 +275,13 @@ function frontTexture(n: number): HTMLCanvasElement {
   return c;
 }
 
-function backTexture(): HTMLCanvasElement {
+function backTexture(lite: boolean): HTMLCanvasElement {
   const c = document.createElement("canvas");
   c.width = TEX_W;
   c.height = TEX_H;
   const ctx = c.getContext("2d")!;
   const serif = fontVar("--font-zilla", "Georgia, serif");
-  kraft(ctx, 99);
+  kraft(ctx, 99, lite ? 1200 : 2600);
   seal(ctx);
   // Le dos est vu à travers une rotation de 180° : on dessine en miroir.
   ctx.save();
@@ -329,7 +352,9 @@ function toTexture(canvas: HTMLCanvasElement): THREE.CanvasTexture {
   return t;
 }
 
-function paperMaterial(map: THREE.Texture, transparent = false) {
+function paperMaterial(map: THREE.Texture, transparent: boolean, lite: boolean): THREE.MeshStandardMaterial {
+  // Mobile : matériau standard, bien moins coûteux par pixel que le physique (vernis + sheen).
+  if (lite) return new THREE.MeshStandardMaterial({ map, roughness: 0.72, metalness: 0, envMapIntensity: 0.6, transparent });
   // Kraft mat légèrement satiné : rugosité élevée, léger vernis pour accrocher les reflets.
   return new THREE.MeshPhysicalMaterial({
     map,
@@ -348,8 +373,8 @@ function paperMaterial(map: THREE.Texture, transparent = false) {
 type Assets = {
   front: THREE.Material;
   back: THREE.Material;
-  stripFront: THREE.MeshPhysicalMaterial;
-  stripBack: THREE.MeshPhysicalMaterial;
+  stripFront: THREE.MeshStandardMaterial;
+  stripBack: THREE.MeshStandardMaterial;
   card: THREE.Texture;
   glow: THREE.Texture;
 };
@@ -393,7 +418,7 @@ function Beans({ start, freezeAt }: { start: number | null; freezeAt?: number })
   });
   return (
     <instancedMesh ref={ref} args={[undefined, undefined, BEANS]} visible={false}>
-      <sphereGeometry args={[1, 14, 10]} />
+      <sphereGeometry args={[1, 10, 8]} />
       <meshStandardMaterial color="#4A2C18" roughness={0.42} metalness={0.05} />
     </instancedMesh>
   );
@@ -401,7 +426,7 @@ function Beans({ start, freezeAt }: { start: number | null; freezeAt?: number })
 
 /* ---------- Sachet ---------- */
 
-function Pouch3D({ n, mode, onReady, onOpened, freezeAt }: Omit<Props, "eventSource">) {
+function Pouch3D({ n, mode, onReady, onOpened, freezeAt, lite }: Omit<Props, "eventSource"> & { lite: boolean }) {
   const group = useRef<THREE.Group>(null);
   const strip = useRef<THREE.Group>(null);
   const stripMeshes = useRef<THREE.Mesh[]>([]);
@@ -417,20 +442,28 @@ function Pouch3D({ n, mode, onReady, onOpened, freezeAt }: Omit<Props, "eventSou
   const [assets, setAssets] = useState<Assets | null>(null);
   const { pointer, clock } = useThree();
 
-  const geo = useMemo(() => ({ body: panel(Y_MIN, TEAR_Y, 64, 80), top: panel(TEAR_Y, Y_MAX, 64, 10) }), []);
+  // Maillage allégé sur mobile : les plis restent lisibles avec deux fois moins de sommets.
+  const geo = useMemo(
+    () => ({
+      body: panel(Y_MIN, TEAR_Y, lite ? 40 : 64, lite ? 50 : 80),
+      top: panel(TEAR_Y, Y_MAX, lite ? 40 : 64, 8),
+      cap: bottomCap(lite ? 40 : 64),
+    }),
+    [lite],
+  );
 
   useEffect(() => {
     let alive = true;
     const serif = fontVar("--font-zilla", "Georgia");
     Promise.all([document.fonts.load(`700 80px ${serif}`), document.fonts.ready]).then(() => {
       if (!alive) return;
-      const front = toTexture(frontTexture(n));
-      const back = toTexture(backTexture());
+      const front = toTexture(frontTexture(n, lite));
+      const back = toTexture(backTexture(lite));
       setAssets({
-        front: paperMaterial(front),
-        back: paperMaterial(back),
-        stripFront: paperMaterial(front, true),
-        stripBack: paperMaterial(back, true),
+        front: paperMaterial(front, false, lite),
+        back: paperMaterial(back, false, lite),
+        stripFront: paperMaterial(front, true, lite),
+        stripBack: paperMaterial(back, true, lite),
         card: toTexture(cardTexture(n)),
         glow: toTexture(glowTexture()),
       });
@@ -439,7 +472,7 @@ function Pouch3D({ n, mode, onReady, onOpened, freezeAt }: Omit<Props, "eventSou
     return () => {
       alive = false;
     };
-  }, [n, onReady]);
+  }, [n, onReady, lite]);
 
   useEffect(() => {
     if (mode === "tearing" && tearStart.current === null) {
@@ -517,6 +550,9 @@ function Pouch3D({ n, mode, onReady, onOpened, freezeAt }: Omit<Props, "eventSou
       <pointLight ref={light} position={[0, 1.36, 0.02]} color="#FFD7A8" intensity={0} distance={5} />
       <mesh geometry={geo.body} material={assets.front} />
       <mesh geometry={geo.body} material={assets.back} rotation-y={Math.PI} />
+      <mesh geometry={geo.cap}>
+        <meshStandardMaterial color="#8E6440" roughness={0.8} side={THREE.DoubleSide} />
+      </mesh>
       <group ref={strip} position={[HW, TEAR_Y, 0]}>
         <group position={[-HW, -TEAR_Y, 0]}>
           <mesh ref={(m) => { if (m) stripMeshes.current[0] = m; }} geometry={geo.top} material={assets.stripFront} />
@@ -542,10 +578,11 @@ function isLite(): boolean {
 
 export default function PouchScene({ n, mode, onReady, onOpened, eventSource, freezeAt }: Props) {
   const [lite] = useState(isLite);
+  const [dpr, setDpr] = useState<number | [number, number]>(lite ? [1, 1.25] : [1, 2]);
   const charging = mode === "charging";
   return (
     <Canvas
-      dpr={lite ? [1, 1.5] : [1, 2]}
+      dpr={dpr}
       camera={{ position: [0, 0, 7.4], fov: 46 }}
       gl={{ antialias: !lite, alpha: true, powerPreference: "high-performance" }}
       eventSource={eventSource as RefObject<HTMLElement>}
@@ -555,7 +592,9 @@ export default function PouchScene({ n, mode, onReady, onOpened, eventSource, fr
       <ambientLight intensity={0.18} />
       <directionalLight position={[-3.5, 4, 4]} intensity={1.7} color="#FFF4E6" />
       <directionalLight position={[4.5, 0.5, -2]} intensity={1.1} color="#9FD1B6" />
-      <Pouch3D n={n} mode={mode} onReady={onReady} onOpened={onOpened} freezeAt={freezeAt} />
+      {/* Baisse la résolution si le téléphone n’arrive pas à suivre. */}
+      <PerformanceMonitor onDecline={() => setDpr(1)} />
+      <Pouch3D n={n} mode={mode} onReady={onReady} onOpened={onOpened} freezeAt={freezeAt} lite={lite} />
       <Sparkles
         count={(charging ? 70 : 36) / (lite ? 2 : 1)}
         scale={[4.2, 5.2, 2.5]}
@@ -566,7 +605,7 @@ export default function PouchScene({ n, mode, onReady, onOpened, eventSource, fr
       />
       {!lite && <ContactShadows position={[0, -2.45, 0]} opacity={0.5} scale={7} blur={2.6} far={4} />}
       {/* Studio de lumières virtuel : reflets doux sur le kraft, liseré sapin en contre-jour. */}
-      <Environment resolution={lite ? 128 : 256}>
+      <Environment resolution={lite ? 64 : 256}>
         <group rotation={[-Math.PI / 3, 0, 1]}>
           <Lightformer form="circle" intensity={4} rotation-x={Math.PI / 2} position={[0, 5, -9]} scale={2} />
           <Lightformer form="circle" intensity={2} rotation-y={Math.PI / 2} position={[-5, 1, -1]} scale={2} />

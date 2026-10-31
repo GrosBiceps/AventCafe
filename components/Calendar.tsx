@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import Pouch, { PouchDefs } from "./Pouch";
-import OpeningStage, { fetchDay, type LoadResult } from "./OpeningStage";
-import { useAvent } from "@/lib/storage";
+import OpeningStage, { fetchDay, preloadScene, type LoadResult } from "./OpeningStage";
+import { useOpened } from "@/lib/storage";
 import type { CalendarStatus, ShelfItem } from "@/lib/types";
 
 const TILTS = [-2, 1.5, -1, 2, -1.5, 1, 0.5, -2, 2, -0.5, 1.5, -1];
@@ -107,7 +107,7 @@ export function CalendarShell() {
 
 export default function Calendar({ shelf, todayN, status, msToMidnight }: Props) {
   const router = useRouter();
-  const { opened } = useAvent();
+  const opened = useOpened();
   const [active, setActive] = useState<{ n: number; already: boolean; load: Promise<LoadResult> } | null>(null);
   const [toast, setToast] = useState<{ msg: string; id: number } | null>(null);
   const toastTimer = useRef<number | undefined>(undefined);
@@ -162,7 +162,7 @@ export default function Calendar({ shelf, todayN, status, msToMidnight }: Props)
         <header className="hero">
           <Hero status={statusText(status, opened)} opened={openedCount} />
           <div className="trial">
-            <button className="slot trial-slot" type="button" aria-label="Ouvrir le sachet d’essai" onClick={(e) => open(0, false, e)}>
+            <button className="slot trial-slot" type="button" aria-label="Ouvrir le sachet d’essai" onPointerDown={preloadScene} onFocus={preloadScene} onClick={(e) => open(0, false, e)}>
               <Pouch n={0} tilt={-3} />
             </button>
             <div className="trial-text">
@@ -197,6 +197,7 @@ export default function Calendar({ shelf, todayN, status, msToMidnight }: Props)
                   type="button"
                   className={cls}
                   aria-label={label}
+                  onPointerDown={locked ? undefined : preloadScene}
                   onClick={(e) => open(n, locked, e)}
                   onAnimationEnd={(e) => e.currentTarget.classList.remove("shake")}
                 >
