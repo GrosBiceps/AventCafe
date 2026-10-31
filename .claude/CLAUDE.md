@@ -36,7 +36,10 @@ Réponds toujours en français. Fais des commits petits et clairs, puis pousse s
 - `GET /api/day/[n]` → fiche complète si ouvert, sinon `403 { "locked": true, "unlocksOn": "2026-12-07" }`.
   En-tête `Cache-Control: no-store` sur toutes les réponses. Route en rendu dynamique.
 - La page d’accueil reçoit seulement `{ n, locked, origin? }[]` (origine courte si ouvert). Rien d’autre.
-  Elle doit être dynamique (`export const dynamic = "force-dynamic"`), sinon le build fige la date.
+- Next 16.4 avec `cacheComponents` : **pas** d’`export const dynamic` (interdit). Toute lecture de
+  date se fait après `await connection()` ; sur la page, dans un composant sous `<Suspense>`
+  (coquille statique sans donnée + étagère streamée). Le build doit afficher `◐ /` et `ƒ /api/day/[n]`.
+- Avant d’écrire du code Next, lire le guide concerné dans `node_modules/next/dist/docs/` (voir `AGENTS.md`).
 - `PREVIEW_DATE=2026-12-15` remplace la date **seulement si** `NODE_ENV !== "production"`.
 - Côté client : aucun appel API pour un sachet verrouillé (tremblement + toast). Le serveur reste
   protégé quoi qu’il arrive.
